@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ExpenseForm } from "@/components/expense-form";
 import { Input } from "@/components/ui/input";
+import { RecruiterEnvelope } from "@/components/recruiter-envelope";
 import {
   Select,
   SelectContent,
@@ -40,25 +41,35 @@ import {
 
 import { useEffect, useState } from "react";
 import { expenses } from "@/db/schema";
+import { format } from "date-fns";
+import Loading from "@/components/ui/loading";
 
 type Expense = typeof expenses.$inferSelect;
 
 export default function Home() {
   const [data, setData] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("all");
+  const [isRecruiterEnvelopeOpen, setIsRecruiterEnvelopeOpen] = useState(false);
 
   async function fetchExpenses() {
+    setLoading(true);
     const res = await fetch("/api/expenses");
     const { expenses } = await res.json();
     setData(expenses);
+    setLoading(false);
   }
 
   useEffect(() => {
     fetchExpenses();
   }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const filteredData = data
     .filter((expense) =>
@@ -78,6 +89,14 @@ export default function Home() {
 
   return (
     <main className="container mx-auto py-12">
+      <div className="text-center mb-8">
+        <Button
+          onClick={() => setIsRecruiterEnvelopeOpen(true)}
+          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+        >
+          Message for Recruiter
+        </Button>
+      </div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Expense Tracker</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -158,9 +177,7 @@ export default function Home() {
                 <TableRow key={expense.id}>
                   <TableCell>{expense.title}</TableCell>
                   <TableCell>{expense.amount}</TableCell>
-                  <TableCell>
-                    {new Date(expense.date).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{format(new Date(expense.date), "PPP")}</TableCell>
                   <TableCell>
                     <Button
                       variant="outline"
@@ -210,6 +227,10 @@ export default function Home() {
           </Table>
         </CardContent>
       </Card>
+      <RecruiterEnvelope
+        isOpen={isRecruiterEnvelopeOpen}
+        onClose={() => setIsRecruiterEnvelopeOpen(false)}
+      />
     </main>
   );
 }

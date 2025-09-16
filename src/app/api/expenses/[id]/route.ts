@@ -7,10 +7,10 @@ export async function PUT(
     request: Request,
     { params }: { params: { id: string } }
 ) {
-    const { title, amount } = await request.json();
+    const { title, amount, date } = await request.json();
     const updatedExpense = await db
         .update(expenses)
-        .set({ title, amount: String(amount) })
+        .set({ title, amount: String(amount), date: new Date(date) })
         .where(eq(expenses.id, parseInt(params.id)))
         .returning();
 
